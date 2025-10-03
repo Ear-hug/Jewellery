@@ -1,0 +1,69 @@
+package Objects;
+
+import Link.LinkedList;
+
+public class Tray {
+    private String id;
+    private String inlayColor;
+    private double width;
+    private double depth;
+
+    private LinkedList<Jewellery> jewelleryList = new LinkedList<>();
+
+
+    public Tray(String id, String inlayColor, double width, double depth){
+        this.id = id;
+        this.inlayColor = inlayColor;
+        this.width = width;
+        this.depth = depth;
+    }
+
+    public String getId(){
+        return id;
+    }
+
+    public void setId(String id){
+        this.id=id;
+    }
+
+    public String getInlayColor(){
+        return inlayColor;
+    }
+
+    public void setInlayColor(String inlayColor){
+        this.inlayColor=inlayColor;
+    }
+
+    public double getWidth(){
+        return width;
+    }
+
+    public void setWidth(double width){
+        this.width=width;
+    }
+
+    public double getDepth(){
+        return depth;
+    }
+
+    public void setDepth(double depth){
+        this.depth=depth;
+    }
+
+    public LinkedList<Jewellery> getJewelleryList() {
+        return new LinkedList<>();
+    }
+
+    public void addJewellery(Jewellery jewellery){
+        jewelleryList.add(jewellery);
+    }
+
+    public void removeJewellery(Jewellery jewellery) {
+        jewelleryList.remove(jewellery);
+    }
+
+    public String toString() {
+        return ("Tray " + id +" (InlayColour:" + inlayColor + "width:" + width + "depth:" + depth +")");
+    }
+
+}
