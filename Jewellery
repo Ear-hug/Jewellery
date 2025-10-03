@@ -1,0 +1,105 @@
+package Objects;
+
+import Link.LinkedList;
+
+public class Jewellery {
+    private String id;
+    private String description;
+    private String type;
+    private String gender;
+    private String imageURL;
+    private double price;
+
+    private LinkedList<Material> materials = new LinkedList<>();
+
+    public Jewellery(String id, String description, String type, String gender, String imageURL, double price, Material material) {
+        this.id = id;
+        this.description = description;
+        this.type = type;
+        this.gender = gender;
+        this.imageURL = imageURL;
+        this.price = price;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public String getImageURL() {
+        return imageURL;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+
+    public void addMaterial(Material m) {
+        if (m != null) {
+            materials.add(m);
+        }
+    }
+
+    public void removeMaterial(Material m) {
+        if (m != null) {
+            materials.remove(m);
+        }
+    }
+
+    public void printMaterials(){
+        System.out.println(materials);
+    }
+    public void printJewellery() {
+        System.out.println("Id: " + id);
+        System.out.println("Description: " + description);
+        System.out.println("Type: " + type);
+        System.out.println("Gender: " + gender);
+        System.out.println("Image URL: " + imageURL);
+        System.out.println("Price: " + price);
+    }
+
+    public LinkedList<Material> getMaterials(){
+        return  materials;
+    }
+
+    @Override
+    public String toString() {
+        return "Jewellery{id='" + id + "', description='" + description + "', type='" + type + "', price=" + price + "}";
+    }
+}
