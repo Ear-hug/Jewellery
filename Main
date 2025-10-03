@@ -1,0 +1,729 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.Scanner;
+import Objects.DisplayCase;
+import Objects.Tray;
+import Objects.Jewellery;
+import Objects.Material;
+
+/**
+ * 此类用于启动应用程序，并初始化应用程序所需的资源。
+ * This class is used to start the application and initialize the required resources.
+ *
+ * @author Lu Siyu
+ * @version 0.0
+ */
+public class Main {
+    private JewelleryStore jewelleryStore;
+    Scanner scanner = new Scanner(System.in);
+    private LinkedList displayCases;
+    private LinkedList trays;
+    private LinkedList jewellery;
+    private LinkedList materials;
+
+    public static void main(String[] args) throws Exception {
+        new Main().start();
+    }
+
+    public void start() {
+        runMainMenu();
+    }
+
+    //----------------------
+    //      Main Menu
+    //----------------------
+
+    /**
+     * 主菜单，显示应用程序的主菜单选项。
+     * The main menu, which displays the options for the main menu.
+     *
+     * @return 选择的选项。
+     * @author Lu Siyu
+     * @version 0.0
+     */
+    private int mainMenu() {
+        System.out.println("""
+                 ---------Jewellery Store--------
+                |  1) DisplayCase MENU           |
+                |  2) Tray MENU                  |
+                |  3) Jewellery MENU             |
+                |  4) Material MENU              |
+                |--------------------------------|
+                |  5) Save all                   |
+                |  6) Load all                   |
+                |--------------------------------|
+                |  0) Exit                       |
+                 --------------------------------""");
+        return scanner.nextInt();
+    }
+
+    /**
+     * 运行主菜单，显示应用程序的主菜单选项，并根据用户选择执行相应的操作。
+     * This method runs the main menu, which displays the options for the main menu, and executes the corresponding operations based on the user's selection.
+     *
+     * @author Lu Siyu
+     * @version 0.0
+     */
+    private void runMainMenu() {
+        int option = mainMenu();
+        while (option != 0) {
+            switch (option) {
+                case 1 -> runDisplayCaseMenu();
+                case 2 -> runTrayMenu();
+                case 3 -> runJewelleryMenu();
+                case 4 -> runMaterialMenu();
+                /**case 5-> {
+                 try {
+                 jewelleryStore.save("jewellery");
+                 } catch (Exception e) {
+                 throw new RuntimeException(e);
+                 }
+                 }
+                 case 6-> {
+                 try {
+                 jewelleryStore.load("jewellery");
+                 } catch (Exception e) {
+                 throw new RuntimeException(e);
+                 }
+                 }*/
+                default -> System.out.println("Invalid option entered.");
+            }
+            System.out.println("Press the enter key to continue");
+            scanner.hasNext();
+            option = mainMenu();
+        }
+        //exitApp();
+    }
+    
+    //----------------------
+    //  DisplayCase Menu
+    //----------------------
+
+    /**
+     * 运行展示柜菜单，显示展示柜菜单选项，并根据用户选择执行相应的操作。
+     * This method runs the displayCase menu, which displays the options for the displayCase menu, and executes the corresponding operations based on the user's selection.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void runDisplayCaseMenu() {
+        int option = displayCaseMenu();
+        while (option != 0) {
+            switch (option) {
+                case 1 -> addDisplayCase();
+                case 2 -> deleteDisplayCase();
+                case 3 -> updateDisplayCase();
+                case 4 -> jewelleryStore.viewAllStock();
+                case 5 -> searchDisplayCase();
+                default -> System.out.println("Invalid option entered.");
+            }
+            System.out.println("Press the enter key to continue");
+            scanner.hasNext();
+            option = displayCaseMenu();
+        }
+        runMainMenu();
+    }
+
+    /**
+     * 显示展示柜菜单选项。
+     * This method displays the options for the displayCase menu.
+     *
+     * @return 返回用户选择的选项。
+     * The selected option.
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private int displayCaseMenu() {
+        System.out.println("""
+                 ---------DisplayCase Menu---------
+                |  1) Add a DisplayCase            |
+                |  2) Delete a DisplayCase         |
+                |  3) Update DisplayCase details   |
+                |  4) List all DisplayCases        |
+                |  5) Search a DisplayCase         |
+                |  0) Return to main menu          |
+                 ----------------------------------""");
+        return scanner.nextInt();
+    }
+
+    /**
+     * 添加展示柜。
+     * This method adds a displayCase.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void addDisplayCase() {
+        System.out.println("Please enter the DisplayCase id: ");
+        String caseId = scanner.nextLine();
+        System.out.println("Please enter the type: ");
+        String type = scanner.nextLine();
+        System.out.println("Please enter whether the DisplayCase is lighted: ");
+        Boolean isLighted = scanner.nextBoolean();
+        DisplayCase displayCase = new DisplayCase(caseId, type, isLighted);
+        displayCases.add(displayCase);
+        System.out.println("Add successful");
+
+    }
+
+    /**
+     * 删除展示柜
+     * This method deletes a displayCase.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void deleteDisplayCase() {
+        System.out.println("Please enter the DisplayCase id: ");
+        String caseId = scanner.nextLine();
+        DisplayCase displayCase = null;
+        for (Object obj : displayCases) {
+            DisplayCase displayCase1 = (DisplayCase) obj;
+            if (displayCase1.getCaseId().equals(caseId)) {
+                displayCase = displayCase1;
+                break;
+            }
+        }
+        if (displayCase != null && displayCases.remove(displayCase)) {
+            System.out.println("Delete successful");
+        } else {
+            System.out.println("Delete not successful");
+        }
+    }
+
+    /**
+     * 更新展示柜。
+     * This method updates a displayCase.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void updateDisplayCase() {
+        System.out.println("Please enter the DisplayCase id to update: ");
+        String caseId = scanner.nextLine();
+        // 查找要更新的 DisplayCase
+        DisplayCase targetCase = null;
+        for (Object obj : displayCases) {
+            DisplayCase dc = (DisplayCase) obj;
+            if (dc.getCaseId().equals(caseId)) {
+                targetCase = dc;
+                break;
+            }
+        }
+
+        if (targetCase != null) {
+            // 获取新的信息
+            System.out.println("Please enter the new type: ");
+            String newType = scanner.nextLine();
+            System.out.println("Please enter whether the DisplayCase is lighted (true/false): ");
+            boolean newIsLighted = scanner.nextBoolean();
+
+            // 更新 DisplayCase 信息
+            targetCase.setType(newType);
+            targetCase.setIsLighted(newIsLighted);
+
+            System.out.println("DisplayCase updated successfully");
+        } else {
+            System.out.println("DisplayCase not found");
+        }
+    }
+
+    /**
+     * 查找展示柜。
+     * This method is to search a displayCase by the keyword.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void searchDisplayCase() {
+        System.out.println("Please enter the keyword: ");
+        String keyword = scanner.nextLine();
+        jewelleryStore.search(keyword);
+    }
+
+
+    //---------------------
+    //  Tray Menu
+    //---------------------
+
+    /**
+     * 运行托盘菜单，显示托盘菜单选项，并根据用户选择执行相应的操作。
+     * This method runs the Tray menu, which displays the options for the Tray menu, and executes the corresponding operations based on the user's selection.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void runTrayMenu() {
+        int option = TrayMenu();
+        while (option != 0) {
+            switch (option) {
+                case 1 -> addTray();
+                case 2 -> deleteTray();
+                case 3 -> jewelleryStore.viewAllStock();
+                case 4 -> updateTray();
+                case 5 -> searchTray();
+                default -> System.out.println("Invalid option entered");
+            }
+            System.out.println("Press the enter key to continue");
+            scanner.hasNext();
+            option = TrayMenu();
+        }
+        runMainMenu();
+    }
+
+    /**
+     * 显示托盘菜单选项。
+     * This method displays the options for the Tray menu.
+     *
+     * @return 返回用户选择的选项。
+     * The selected option.
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private int TrayMenu() {
+        System.out.println(""" 
+                 -----------Tray Menu------------
+                | 1) Add a Tray                  |
+                | 2) Delete a Tray               |
+                | 3) List all Trays              |
+                | 4) Update Tray                 |
+                | 5) Search a Tray               |
+                | 0) Return to main menu         |
+                 ----------------------------""");
+        return scanner.nextInt();
+    }
+
+    /**
+     * 添加托盘。
+     * This method adds a Tray.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void addTray() {
+        System.out.println("Please enter the Tray id: ");
+        String trayId = scanner.nextLine();
+        System.out.println("Please enter the inlayColor: ");
+        String inlayColor = scanner.nextLine();
+        System.out.println("Please enter the width of the tray: ");
+        double width = scanner.nextDouble();
+        System.out.println("Please enter the depth of the tray: ");
+        double depth = scanner.nextDouble();
+        Tray tray = new Tray(trayId, inlayColor, width, depth);
+        trays.add(tray);
+        System.out.println("Add successful");
+
+    }
+
+    /**
+     * 删除托盘。
+     * This method deletes a tray.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void deleteTray() {
+        System.out.println("Please enter the trayId: ");
+        String trayId = scanner.nextLine();
+        Tray targetTray = null;
+        for (Object obj : trays) {
+            Tray tray1 = (Tray) obj;
+            if (tray1.getId().equals(trayId)) {
+                targetTray = tray1;
+                break;
+            }
+        }
+        if (targetTray != null && trays.remove(targetTray)) {
+            System.out.println("Delete successful");
+        } else {
+            System.out.println("Delete not successful");
+        }
+    }
+
+    /**
+     * 更新托盘。
+     * This method updates a tray.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void updateTray() {
+        System.out.println("Please enter the Tray id to update: ");
+        String trayId = scanner.nextLine();
+        // 查找要更新的 tray
+        Tray targetTray = null;
+        for (Object obj : trays) {
+            Tray tray1 = (Tray) obj;
+            if (tray1.getId().equals(trayId)) {
+                targetTray = tray1;
+                break;
+            }
+        }
+
+        if (targetTray != null) {
+            // 获取新的信息
+            System.out.println("Please enter the new inlayColor: ");
+            String newInlayColor = scanner.nextLine();
+            System.out.println("Please enter the new width of the tray: ");
+            double newWidth = scanner.nextDouble();
+            System.out.println("Please enter the new depth of the tray: ");
+            double newDepth = scanner.nextDouble();
+
+            // 更新 Tray 信息
+            targetTray.setInlayColor(newInlayColor);
+            targetTray.setWidth(newWidth);
+            targetTray.setDepth(newDepth);
+
+            System.out.println("Tray updated successfully");
+        } else {
+            System.out.println("Tray not found");
+        }
+    }
+
+    /**
+     * 查找托盘。
+     * This method is to search a tray by the keyword.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void searchTray() {
+        System.out.println("Please enter the keyword: ");
+        String keyword = scanner.nextLine();
+
+        Tray foundTray = null;
+        for (Object obj : trays) {
+            Tray tray = (Tray) obj;
+            if (tray.getId().contains(keyword) ||
+                    tray.getInlayColor().contains(keyword)) {
+                foundTray = tray;
+                break;
+            }
+        }
+
+        if (foundTray != null) {
+            System.out.println("Found Tray: " + foundTray);
+        } else {
+            System.out.println("No matching Tray found");
+        }
+    }
+
+    //----------------------
+    //  Jewellery Menu
+    //----------------------
+
+    /**
+     * 运行珠宝菜单，显示珠宝菜单选项，并根据用户选择执行相应的操作。
+     * This method runs the Jewellery menu, which displays the options for the Jewellery menu, and executes the corresponding operations based on the user's selection.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void runJewelleryMenu() {
+        int option = jewelleryMenu();
+        while (option != 0) {
+            switch (option) {
+                case 1 -> addJewellery();
+                case 2 -> deleteJewellery();
+                case 3 -> updateJewellery();
+                case 4 -> jewelleryStore.viewAllStock();
+                case 5 -> searchJewellery();
+                default -> System.out.println("Invalid option entered.");
+            }
+            System.out.println("Press the enter key to continue");
+            scanner.hasNext();
+            option = jewelleryMenu();
+        }
+        runMainMenu();
+    }
+
+    /**
+     * 显示珠宝菜单选项。
+     * This method displays the options for the Jewellery menu.
+     *
+     * @return 返回用户选择的选项。
+     * The selected option.
+     * @author Lusiyu
+     * @since version 0.0
+     */
+    private int jewelleryMenu() {
+        System.out.println("""
+                 ---------DisplayCase Menu---------
+                |  1) Add a Jewellery              |
+                |  2) Delete a Jewellery           |
+                |  3) Update Jewellery details     |
+                |  4) List all Jewellery           |
+                |  5) Search a Jewellery           |
+                |  0) Return to main menu          |
+                 ----------------------------------""");
+        return scanner.nextInt();
+    }
+
+    /**
+     * 添加珠宝。
+     * This method adds a manufacturer.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void addJewellery() {
+        System.out.println("Please enter the jewellery id: ");
+        String jewelleryId = scanner.nextLine();
+        System.out.println("Please enter the description: ");
+        String description = scanner.nextLine();
+        System.out.println("Please enter the type: ");
+        String type = scanner.nextLine();
+        System.out.println("Please enter the gender: ");
+        String gender = scanner.nextLine();
+        System.out.println("Please enter the image URL: ");
+        String imageURL = scanner.nextLine();
+        System.out.println("Please enter the price: ");
+        double price = scanner.nextDouble();
+        System.out.println("Please enter the material name: ");
+        String materialName = scanner.nextLine();
+        Material material = new Material(materialName, null, 0, 0);
+        jewelleryStore.smartAdd(new Jewellery(jewelleryId, description, type, gender, imageURL, price, material));
+        System.out.println("Add successful");
+
+    }
+
+    /**
+     * 删除珠宝。
+     * This method deletes a jewellery.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void deleteJewellery() {
+        System.out.println("Please enter the jewellery id: ");
+        String jewelleryId = scanner.nextLine();
+        if (jewelleryStore.removeItem(jewelleryId)) {
+            System.out.println("Delete successful");
+        } else {
+            System.out.println("Delete not successful");
+        }
+    }
+
+    /**
+     * 更新珠宝。
+     * This method updates a jewellery.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void updateJewellery() {
+        System.out.println("Please enter the Jewellery id to update: ");
+        String jewelleryId = scanner.nextLine();
+        // 查找要更新的 DisplayCase
+        Jewellery targetJewellery = null;
+        for (Object obj : jewellery) {
+            Jewellery jewellery = (Jewellery) obj;
+            if (jewellery.getId().equals(jewelleryId)) {
+                targetJewellery = jewellery;
+                break;
+            }
+        }
+
+        if (targetJewellery != null) {
+            // 获取新的信息
+            System.out.println("Please enter the new description: ");
+            String newDescription = scanner.nextLine();
+            System.out.println("Please enter the new type: ");
+            String newType = scanner.nextLine();
+            System.out.println("Please enter the new gender: ");
+            String newGender = scanner.nextLine();
+            System.out.println("Please enter the new image URL: ");
+            String newImageURL = scanner.nextLine();
+            System.out.println("Please enter the new price: ");
+            double newPrice = scanner.nextDouble();
+            System.out.println("Please enter the new material name: ");
+            String newMaterialName = scanner.nextLine();
+
+            targetJewellery.setDescription(newDescription);
+            targetJewellery.setType(newType);
+            targetJewellery.setGender(newGender);
+            targetJewellery.setImageURL(newImageURL);
+            targetJewellery.setPrice(newPrice);
+            System.out.println("Jewellery updated successfully");
+        } else {
+            System.out.println("Jewellery not found");
+        }
+    }
+
+    /**
+     * 通过关键词获取珠宝。
+     * This method retrieves a jewellery by the keyword.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void searchJewellery() {
+        System.out.println("Please enter the keyword: ");
+        String keyword = scanner.nextLine();
+        jewelleryStore.search(keyword);
+    }
+
+
+    //----------------------
+    //  Material Menu
+    //----------------------
+
+    /**
+     * 运行材料菜单，显示材料菜单选项，并根据用户选择执行相应的操作。
+     * This method runs the material menu, which displays the options for the material menu, and executes the corresponding operations based on the user's selection.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void runMaterialMenu() {
+        int option = materialsMenu();
+        while (option != 0) {
+            switch (option) {
+                case 1 -> addMaterial();
+                case 2 -> deleteMaterial();
+                case 3 -> updateMaterial();
+                case 4 -> jewelleryStore.viewAllStock();
+                case 5 -> searchMaterial();
+                default -> System.out.println("Invalid option entered.");
+            }
+            System.out.println("Press the enter key to continue");
+            scanner.hasNext();
+            option = materialsMenu();
+        }
+        runMainMenu();
+    }
+
+    /**
+     * 显示材料菜单选项。
+     * This method displays the options for the material menu.
+     *
+     * @return 返回用户选择的选项。
+     * The selected option.
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private int materialsMenu() {
+        System.out.println("""
+                 -----------Material Menu----------
+                |  1) Add a material               |
+                |  2) Delete a material            |
+                |  3) Update Material details      |
+                |  4) List all materials           |
+                |  5) Search a material            |
+                |  0) Return to main menu          |
+                 ----------------------------------""");
+        return scanner.nextInt();
+    }
+
+    /**
+     * 添加材料。
+     * This method adds a material.
+     *
+     * @author Lusiyu
+     * @since version 0.0
+     */
+    private void addMaterial() {
+        System.out.println("Please enter the material name: ");
+        String name = scanner.nextLine();
+        System.out.println("Please enter the description: ");
+        String description = scanner.nextLine();
+        System.out.println("Please enter the quantity: ");
+        Double quantity = scanner.nextDouble();
+        System.out.println("Please enter the quality: ");
+        Double quality = scanner.nextDouble();
+        Material material = new Material(name, description, quantity, quality);
+        materials.add(material);
+        System.out.println("Add successful");
+
+    }
+
+    /**
+     * 删除材料
+     * This method deletes a material.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void deleteMaterial() {
+        System.out.println("Please enter the Material name: ");
+        String materialName = scanner.nextLine();
+        if (materials.remove(materialName)) {
+            System.out.println("Delete successful");
+        } else {
+            System.out.println("Delete not successful");
+        }
+    }
+
+    /**
+     * 更新材料。
+     * This method updates a material.
+     *
+     * @author Lu Siyu
+     * @since version 0.0
+     */
+    private void updateMaterial() {
+        System.out.println("Please enter the Material name to update: ");
+        String materialName = scanner.nextLine();
+        // 查找要更新的 material
+        Material targetMaterial = null;
+        for (Object obj : materials) {
+            Material material = (Material) obj;
+            if (material.getName().equals(materialName)) {
+                targetMaterial = material;
+                break;
+            }
+        }
+
+        if (targetMaterial != null) {
+            // 获取新的信息
+            System.out.println("Please enter the new description: ");
+            String newDescription = scanner.nextLine();
+            System.out.println("Please enter the new quantity: ");
+            Double newQuantity = scanner.nextDouble();
+            System.out.println("Please enter the new quality: ");
+            Double newQuality = scanner.nextDouble();
+
+            targetMaterial.setDescription(newDescription);
+            targetMaterial.setQuantity(newQuantity);
+            targetMaterial.setQuality(newQuality);
+            System.out.println("Material updated successfully");
+        } else {
+            System.out.println("Material not found");
+        }
+    }
+
+    /**
+     * 通过关键词查找材料。
+     * This method retrieves a material by the keyword.
+     *
+     * @author LuSiyu
+     * @since version 0.0
+     */
+    private void searchMaterial() {
+        System.out.println("Please enter the keyword: ");
+        String keyword = scanner.nextLine();
+
+        // 使用遍历方式查找材料，避免类型问题
+        Material foundMaterial = null;
+        for (Object obj : materials) {
+            Material material = (Material) obj;
+            // 搜索条件：材料名称或描述包含关键字
+            if (material.getName().contains(keyword) ||
+                    material.getDescription().contains(keyword)) {
+                foundMaterial = material;
+                break;
+            }
+        }
+
+        if (foundMaterial != null) {
+            System.out.println("Found Material: " + foundMaterial);
+        } else {
+            System.out.println("No matching Material found");
+        }
+    }
+}
+
+
