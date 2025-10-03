@@ -3,22 +3,17 @@ package Objects;
 import Link.LinkedList;
 import Link.Node;
 
-public class DisplayCase extends Node {
+public class DisplayCase {
     public String caseId;
     public String type;
     public boolean isLighted;
-    private Node<DisplayCase> next;
-    private Node<DisplayCase> prev;
-    private Node<DisplayCase> head;
-    public LinkedList<Tray> trays = new LinkedList<Tray>();
+
+    public LinkedList<Tray> trays = new LinkedList<>();
 
     public DisplayCase(String caseId, String type, boolean isLighted) {
         this.caseId = caseId;
         this.type = type;
         this.isLighted = isLighted;
-        next = null;
-        prev = null;
-        head = null;
     }
 
     // 封装
@@ -50,12 +45,16 @@ public class DisplayCase extends Node {
         trays.add(t);
     }
 
+@Override
     public String toString() {
-        return ("Case " + caseId + " (type:" + type + "light:" + isLighted + ")" + "trays:" + trays);
+        return ("Case " + caseId + " (type:" + type + " " + "light:" + isLighted + ")" );
     }
 
-    public Node getHead() {
-        return super.getHead();
 
+    // 添加获取 trays 链表头节点的方法
+    public Node<Tray> getHead() {
+        return trays.getHead();
     }
+
+
 }
