@@ -1,0 +1,339 @@
+import Link.LinkedList;
+import Link.Node;
+import Objects.DisplayCase;
+import Objects.Jewellery;
+import Objects.Material;
+import Objects.Tray;
+
+import java.util.Scanner;
+public class JewelleryStore extends Node {
+
+    LinkedList<Object> displayCases = null;
+    // Remove a case.
+    public void removeCase(String caseId) {
+        // TODO: 遍历 cases 链表，找到并删除
+        Scanner sc = new Scanner(System.in);
+        String newdisplayCaseId = sc.toString();
+
+        LinkedList<Object> displayCases = null;
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        while (caseNode != null) {
+            if (newdisplayCaseId.equals(caseNode.data.caseId)) {
+            }
+            displayCases.remove(caseNode.data);
+            System.out.println("Removed successfully.");
+            return;
+        }
+        caseNode = caseNode.next;
+    }
+
+    // View all stock.
+    public String viewAllStock() {
+        // TODO: 遍历所有 case → tray → item → materials
+        System.out.println("=== 全部库存 ===");
+
+        Node<Object> displayCases = null;
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        while (caseNode != null) {
+            Node<Tray> trayNode = caseNode.data.trays.getHead();
+            while (trayNode != null) {
+                Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
+                while (jewelleryNode != null) {
+                    Node<Material> materialNode = jewelleryNode.data.getMaterials().getHead();
+                    while (materialNode != null) {
+                        System.out.println(materialNode.data);
+                        materialNode = materialNode.next;
+                    }
+                    jewelleryNode = jewelleryNode.next;
+                }
+                trayNode = trayNode.next;
+
+            }
+            caseNode = caseNode.next;
+            System.out.println("=== " + caseNode.data.caseId + " ===");
+        }
+        return "=== 显示完毕 ===";
+    }
+
+    // Search.
+    public void search(String keyword) {
+        // TODO: 遍历并匹配 description / name
+        Node<Jewellery> jewellyNode = null;
+        Node<Jewellery> caseNode = jewellyNode.getHead();
+        while (caseNode != null) {
+            if (keyword.equals(caseNode.data.getDescription()) || keyword.equals(caseNode.data.getId())) {
+                System.out.println(caseNode.data);
+            } else {
+                System.out.println("Not found.");
+            }
+            caseNode = caseNode.next;
+            System.out.println("=== " + caseNode.data.getId() + " ===");
+        }
+    }
+
+    // Smart add.
+    public void smartAdd(Jewellery item) {
+        // TODO: 自动选择 case/tray 存放
+        LinkedList<Jewellery> jewellery = null;
+        Node<DisplayCase> caseNode = jewellery.getHead();
+        Node<Tray> currentTray = null;
+        while (caseNode != null) {
+            Node<Tray> trayNode = caseNode.data.trays.getHead();
+            while (trayNode != null) {
+                Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
+                while (jewelleryNode != null) {
+                    if (jewelleryNode.data.getType().equals(item.getType())) {
+                        trayNode.data.getJewelleryList().add(item);
+                    } else {
+                        currentTray = trayNode;
+                        trayNode = trayNode.next;
+                        trayNode.data.getJewelleryList().add(item);
+                    }
+                }
+            }
+        }
+
+    }
+
+    // Remove item.
+    public boolean removeItem(String itemId) {
+        // TODO: 遍历所有 case → tray → item
+        Node<Object> dispkayCases = null;
+        Node<DisplayCase> DisplayCaseNode = dispkayCases.getHead();
+        while (DisplayCaseNode != null) {
+            Node<Tray> trayNode = DisplayCaseNode.data.trays.getHead();
+            while (trayNode != null) {
+                Node<Jewellery> itemNode = trayNode.data.getJewelleryList().getHead();
+                while (itemNode != null) {
+                    if (itemId.equals(itemNode.data.getId())) {
+                        trayNode.data.getJewelleryList().remove(itemNode.data);
+                    } else {
+                        System.out.println("Not found.");
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    // Value stock.
+    public double valueStock() {
+        double value = 0;
+        Node<Object> displayCases = null;
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        while (caseNode != null) {
+            Node<Tray> trayNode = caseNode.data.trays.getHead();
+            while (trayNode != null) {
+                Node<Jewellery> itemNode = trayNode.data.getJewelleryList().getHead();
+                while (itemNode != null) {
+                    value += itemNode.data.getPrice();
+                    itemNode = itemNode.next;
+                    System.out.println("=== " + itemNode.data.getId() + " ===");
+                    System.out.println("Value: " + value);
+                    return value;
+                }
+            }
+            caseNode = caseNode.next;
+            System.out.println("=== " + caseNode.data.caseId + " ===");
+            System.out.println("Value: " + value);
+            return value;
+        }
+        return value;
+    }
+
+    // Reset facility.
+    public void reset() {
+        LinkedList<Object> displayCases = null;
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        while (caseNode != null) {
+            Node<Tray> trayNode = caseNode.data.trays.getHead();
+            while (trayNode != null) {
+                trayNode.data.getJewelleryList().removeAll();
+                trayNode = trayNode.next;
+            }
+            caseNode = caseNode.next;
+        }
+        System.out.println("Reset successfully.");
+    }
+
+    // Save.
+
+    /**
+    public void save(String filename) {
+        // TODO: 保存到文件
+        try {
+            // 保存 DisplayCase 数据
+            PrintWriter caseWriter = new PrintWriter(new FileWriter(filename + "_cases.csv"));
+            caseWriter.println("caseId,isLocked");
+
+            // 保存 Tray 数据
+            PrintWriter trayWriter = new PrintWriter(new FileWriter(filename + "_trays.csv"));
+            trayWriter.println("trayId,caseId,isLocked");
+
+            // 保存 Jewellery 数据
+            PrintWriter jewelleryWriter = new PrintWriter(new FileWriter(filename + "_jewellery.csv"));
+            jewelleryWriter.println("name,description,type,price,trayId");
+
+            // 保存 Material 数据
+            PrintWriter materialWriter = new PrintWriter(new FileWriter(filename + "_materials.csv"));
+            materialWriter.println("materialType,quality,jewelleryName");
+
+            Node<Object> displayCases = null;
+            Node<DisplayCase> caseNode = displayCases.getHead();
+            while (caseNode != null) {
+                DisplayCase displayCase = caseNode.data;
+                // 写入 case 数据
+                caseWriter.println(displayCase.caseId + "," + displayCase.isLighted);
+
+                // 遍历 trays
+                Node<Tray> trayNode = displayCase.trays.getHead();
+                while (trayNode != null) {
+                    Tray tray = trayNode.data;
+                    // 写入 tray 数据
+                    trayWriter.println(tray.id + "," + displayCase.caseId + "," + tray.inlayColor);
+
+                    // 遍历 jewellery
+                    Node<Jewellery> jewelleryNode = tray.jewelleryList.getHead();
+                    while (jewelleryNode != null) {
+                        Jewellery jewellery = jewelleryNode.data;
+                        // 写入 jewellery 数据
+                        jewelleryWriter.println(jewellery.name + "," + jewellery.description + "," +
+                                jewellery.type + "," + jewellery.price + "," + tray.id);
+
+                        // 遍历 materials
+                        Node<Material> materialNode = jewellery.materials.getHead();
+                        while (materialNode != null) {
+                            Material material = materialNode.data;
+                            // 写入 material 数据
+                            materialWriter.println(material.description + "," + material.quality + "," + jewellery.name);
+                            materialNode = materialNode.next;
+                        }
+                        jewelleryNode = jewelleryNode.next;
+                    }
+                    trayNode = trayNode.next;
+                }
+                caseNode = caseNode.next;
+            }
+
+            caseWriter.close();
+            trayWriter.close();
+            jewelleryWriter.close();
+            materialWriter.close();
+
+            System.out.println("Data saved successfully.");
+        } catch (IOException e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
+    }
+
+
+    public void load(String filename) {
+        try {
+            // 清空现有数据
+            displayCases.removeAll();
+
+            // 加载 DisplayCase 数据
+            BufferedReader caseReader = new BufferedReader(new FileReader(filename + "_cases.csv"));
+            caseReader.readLine(); // 跳过标题行
+
+            String line;
+            while ((line = caseReader.readLine()) != null) {
+                String[] parts = line.split(",");
+                DisplayCase displayCase = new DisplayCase(parts[0], Boolean.parseBoolean(parts[1]));
+                displayCases.add(displayCase);
+            }
+            caseReader.close();
+
+            // 加载 Tray 数据
+            BufferedReader trayReader = new BufferedReader(new FileReader(filename + "_trays.csv"));
+            trayReader.readLine(); // 跳过标题行
+
+            while ((line = trayReader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String trayId = parts[0];
+                String caseId = parts[1];
+                boolean isLocked = Boolean.parseBoolean(parts[2]);
+
+                // 找到对应的 DisplayCase 并添加 Tray
+                Node<DisplayCase> caseNode = displayCases.getHead();
+                while (caseNode != null) {
+                    if (caseNode.data.caseId.equals(caseId)) {
+                        Tray tray = new Tray(trayId, "", "", isLocked);
+                        caseNode.data.trays.add(tray);
+                        break;
+                    }
+                    caseNode = caseNode.next;
+                }
+            }
+            trayReader.close();
+
+            // 加载 Jewellery 数据
+            BufferedReader jewelleryReader = new BufferedReader(new FileReader(filename + "_jewellery.csv"));
+            jewelleryReader.readLine(); // 跳过标题行
+
+            while ((line = jewelleryReader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String name = parts[0];
+                String description = parts[1];
+                String type = parts[2];
+                double price = Double.parseDouble(parts[3]);
+                String trayId = parts[4];
+
+                Jewellery jewellery = new Jewellery(name, description, type, price);
+
+                // 找到对应的 Tray 并添加 Jewellery
+                Node<DisplayCase> caseNode = displayCases.getHead();
+                while (caseNode != null) {
+                    Node<Tray> trayNode = caseNode.data.trays.getHead();
+                    while (trayNode != null) {
+                        if (trayNode.data.trayId.equals(trayId)) {
+                            trayNode.data.jewelleryList.add(jewellery);
+                            break;
+                        }
+                        trayNode = trayNode.next;
+                    }
+                    caseNode = caseNode.next;
+                }
+            }
+            jewelleryReader.close();
+
+            // 加载 Material 数据
+            BufferedReader materialReader = new BufferedReader(new FileReader(filename + "_materials.csv"));
+            materialReader.readLine(); // 跳过标题行
+
+            while ((line = materialReader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String materialType = parts[0];
+                String quality = parts[1];
+                String jewelleryName = parts[2];
+
+                Material material = new Material(materialType, quality);
+
+                // 找到对应的 Jewellery 并添加 Material
+                Node<DisplayCase> caseNode = displayCases.getHead();
+                while (caseNode != null) {
+                    Node<Tray> trayNode = caseNode.data.trays.getHead();
+                    while (trayNode != null) {
+                        Node<Jewellery> jewelleryNode = trayNode.data.jewelleryList.getHead();
+                        while (jewelleryNode != null) {
+                            if (jewelleryNode.data.name.equals(jewelleryName)) {
+                                jewelleryNode.data.materials.add(material);
+                                break;
+                            }
+                            jewelleryNode = jewelleryNode.next;
+                        }
+                        trayNode = trayNode.next;
+                    }
+                    caseNode = caseNode.next;
+                }
+            }
+            materialReader.close();
+
+            System.out.println("Data loaded successfully.");
+        } catch (IOException e) {
+            System.out.println("Error loading data: " + e.getMessage());
+        }
+    }
+     **/
+}
