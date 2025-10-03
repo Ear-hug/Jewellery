@@ -51,7 +51,7 @@ public class Tray {
     }
 
     public LinkedList<Jewellery> getJewelleryList() {
-        return new LinkedList<>();
+        return jewelleryList;
     }
 
     public void addJewellery(Jewellery jewellery){
