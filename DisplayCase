@@ -1,0 +1,61 @@
+package Objects;
+
+import Link.LinkedList;
+import Link.Node;
+
+public class DisplayCase extends Node {
+    public String caseId;
+    public String type;
+    public boolean isLighted;
+    private Node<DisplayCase> next;
+    private Node<DisplayCase> prev;
+    private Node<DisplayCase> head;
+    public LinkedList<Tray> trays = new LinkedList<Tray>();
+
+    public DisplayCase(String caseId, String type, boolean isLighted) {
+        this.caseId = caseId;
+        this.type = type;
+        this.isLighted = isLighted;
+        next = null;
+        prev = null;
+        head = null;
+    }
+
+    // 封装
+    public String getCaseId() {
+        return caseId;
+    }
+
+    public void setCaseId(String caseId) {
+        this.caseId = caseId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean getIsLighted() {
+        return isLighted;
+    }
+
+    public void setIsLighted(boolean isLighted) {
+        this.isLighted = isLighted;
+    }
+
+    public void addTray(Tray t) {
+        trays.add(t);
+    }
+
+    public String toString() {
+        return ("Case " + caseId + " (type:" + type + "light:" + isLighted + ")" + "trays:" + trays);
+    }
+
+    public Node getHead() {
+        return super.getHead();
+
+    }
+}
