@@ -1,0 +1,122 @@
+package Link;
+import Link.Node;
+import java.util.function.Consumer;
+
+public class LinkedList<T> {
+    private Node<T> head;
+    private Node<T> tail;
+    private int size;
+
+    public LinkedList() {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+    }
+
+    /**
+     * Add an element to the end of the linked list
+     * @param element the element to be added
+     */
+    public void add(T element) {
+        Node<T> node = new Node<>(element);
+        // If the list is empty, set the new node as both head and tail
+        if (head == null) {
+            head = node;
+            tail = node;
+        } else {
+            // If the list is not empty, link the new node after the tail and update the tail
+            tail.next = node;
+            tail = node;
+        }
+        size++;
+    }
+
+    /**
+     * Remove the specified element from the linked list
+     * @param element the element to be removed
+     * @return true if the element is successfully removed, false otherwise
+     */
+    public boolean remove(T element) {
+        // If the list is empty, return false directly
+        if (head == null)
+            return false;
+        // If the element to remove is the head node
+        if (head.data.equals(element)) {
+            head = head.next;
+            // If the list becomes empty, update the tail as well
+            if (head == null)
+                tail = null;
+            size--;
+            return true;
+        }
+        // Traverse the list to find the element to remove
+        Node<T> prev = head;
+        Node<T> cur = head.next;
+        while (cur != null) {
+            // Found the element to remove
+            if (cur.data.equals(element)) {
+                prev.next = cur.next;
+                // If removing the tail node, update the tail pointer
+                if (cur == tail)
+                    tail = prev;
+                size--;
+                return true;
+            }
+            prev = cur;
+            cur = cur.next;
+        }
+
+        // Element not found in the list
+        return false;
+    }
+
+    /**
+     * Iterate through the linked list and apply the specified consumer to each element
+     * @param consumer the consumer to be applied to each element
+     */
+    public void forEach(Consumer<T> consumer) {
+        // Traverse the list and apply the consumer function to each node's data
+        Node<T> cur = head;
+        while (cur != null) {
+            consumer.accept(cur.data);
+            cur = cur.next;
+        }
+    }
+
+    /**
+     * Find the first element that satisfies the specified predicate
+     * @param predicate the predicate to be applied to each element
+     * @return the first element that satisfies the predicate, or null if no such element is found
+     */
+    public T find(java.util.function.Predicate<T> predicate) {
+        Node<T> current = head;
+        while (current != null) {
+            if (predicate.test(current.data)) {
+                return current.data;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+
+    public int size(){
+        return size;
+    }
+
+    // Check if the list is empty
+    public boolean isEmpty(){
+        return size == 0;
+    }
+
+    public Node getHead(){
+        return head;
+    }
+
+    public void removeAll() {
+        head = null;
+        tail = null;
+        size = 0;
+        System.out.println("All elements removed.");
+       // System.gc();
+    }
+}
