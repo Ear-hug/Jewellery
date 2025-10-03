@@ -59,7 +59,7 @@ public class Material extends Node {
     }
 
     public String toString(){
-        return"Material" + name + "description" + description + "quantity" + quantity + "quality" + quality;
+        return ("Material" + name + "(description" + description + " " + "quantity" + quantity + " "+ "quality" + quality + ")");
     }
 
 
