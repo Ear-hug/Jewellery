@@ -17,18 +17,19 @@ import Objects.Material;
  * @version 0.0
  */
 public class Main {
-    private JewelleryStore jewelleryStore;
+    private JewelleryStore jewelleryStore = new JewelleryStore();
     Scanner scanner = new Scanner(System.in);
-    private LinkedList displayCases;
-    private LinkedList trays;
-    private LinkedList jewellery;
-    private LinkedList materials;
+    private LinkedList<DisplayCase> displayCases = new LinkedList<>();
+    private LinkedList<Tray> trays = new LinkedList<>();
+    private LinkedList<Jewellery> jewellery = new LinkedList<>();
+    private LinkedList<Material> materials = new LinkedList();
 
     public static void main(String[] args) throws Exception {
         new Main().start();
     }
 
     public void start() {
+        jewelleryStore = new JewelleryStore();
         runMainMenu();
     }
 
@@ -52,8 +53,9 @@ public class Main {
                 |  3) Jewellery MENU             |
                 |  4) Material MENU              |
                 |--------------------------------|
-                |  5) Save all                   |
-                |  6) Load all                   |
+                |  5) List all                   |
+                |  6) Save all                   |
+                |  7) Load all                   |
                 |--------------------------------|
                 |  0) Exit                       |
                  --------------------------------""");
@@ -75,6 +77,7 @@ public class Main {
                 case 2 -> runTrayMenu();
                 case 3 -> runJewelleryMenu();
                 case 4 -> runMaterialMenu();
+                case 5 -> jewelleryStore.viewAllStock();
                 /**case 5-> {
                  try {
                  jewelleryStore.save("jewellery");
@@ -92,12 +95,12 @@ public class Main {
                 default -> System.out.println("Invalid option entered.");
             }
             System.out.println("Press the enter key to continue");
-            scanner.hasNext();
+            scanner.nextLine();
             option = mainMenu();
         }
         //exitApp();
     }
-    
+
     //----------------------
     //  DisplayCase Menu
     //----------------------
@@ -116,12 +119,12 @@ public class Main {
                 case 1 -> addDisplayCase();
                 case 2 -> deleteDisplayCase();
                 case 3 -> updateDisplayCase();
-                case 4 -> jewelleryStore.viewAllStock();
+                case 4 -> listAllDisplayCase();
                 case 5 -> searchDisplayCase();
                 default -> System.out.println("Invalid option entered.");
             }
             System.out.println("Press the enter key to continue");
-            scanner.hasNext();
+            scanner.nextLine();
             option = displayCaseMenu();
         }
         runMainMenu();
@@ -146,7 +149,9 @@ public class Main {
                 |  5) Search a DisplayCase         |
                 |  0) Return to main menu          |
                  ----------------------------------""");
-        return scanner.nextInt();
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // 清除缓冲区
+        return choice;
     }
 
     /**
@@ -157,16 +162,32 @@ public class Main {
      * @since version 0.0
      */
     private void addDisplayCase() {
-        System.out.println("Please enter the DisplayCase id: ");
-        String caseId = scanner.nextLine();
-        System.out.println("Please enter the type: ");
-        String type = scanner.nextLine();
-        System.out.println("Please enter whether the DisplayCase is lighted: ");
-        Boolean isLighted = scanner.nextBoolean();
-        DisplayCase displayCase = new DisplayCase(caseId, type, isLighted);
-        displayCases.add(displayCase);
-        System.out.println("Add successful");
+        try {
+            System.out.println("Please enter the DisplayCase id: ");
+            String caseId = scanner.nextLine();
+            System.out.println("Please enter the type(wall-mounted/freestanding): ");
+            String type = scanner.nextLine();
+            System.out.println("Please enter whether the DisplayCase is lighted (true/false): ");
 
+            // 改进布尔值输入处理
+            Boolean isLighted = null;
+            while (isLighted == null) {
+                String input = scanner.nextLine().trim().toLowerCase();
+                if (input.equals("true") || input.equals("yes") || input.equals("y")) {
+                    isLighted = true;
+                } else if (input.equals("false") || input.equals("no") || input.equals("n")) {
+                    isLighted = false;
+                } else {
+                    System.out.println("Invalid input. Please enter true/false, yes/no, or y/n: ");
+                }
+            }
+
+            DisplayCase displayCase = new DisplayCase(caseId, type, isLighted);
+            jewelleryStore.displayCases.add(displayCase);
+            System.out.println("Add successful");
+        } catch (Exception e) {
+            System.out.println("Error adding DisplayCase: " + e.getMessage());
+        }
     }
 
     /**
@@ -179,19 +200,7 @@ public class Main {
     private void deleteDisplayCase() {
         System.out.println("Please enter the DisplayCase id: ");
         String caseId = scanner.nextLine();
-        DisplayCase displayCase = null;
-        for (Object obj : displayCases) {
-            DisplayCase displayCase1 = (DisplayCase) obj;
-            if (displayCase1.getCaseId().equals(caseId)) {
-                displayCase = displayCase1;
-                break;
-            }
-        }
-        if (displayCase != null && displayCases.remove(displayCase)) {
-            System.out.println("Delete successful");
-        } else {
-            System.out.println("Delete not successful");
-        }
+        jewelleryStore.removeCase(caseId);
     }
 
     /**
@@ -206,21 +215,36 @@ public class Main {
         String caseId = scanner.nextLine();
         // 查找要更新的 DisplayCase
         DisplayCase targetCase = null;
-        for (Object obj : displayCases) {
-            DisplayCase dc = (DisplayCase) obj;
-            if (dc.getCaseId().equals(caseId)) {
-                targetCase = dc;
-                break;
+        Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+        while (currentNode != null) {
+            // 添加类型检查
+            if (currentNode.data instanceof DisplayCase) {
+                if (currentNode.data.getCaseId().equals(caseId)) {
+                    targetCase = currentNode.data;
+                    break;
+                }
             }
+            currentNode = currentNode.next;
         }
 
         if (targetCase != null) {
             // 获取新的信息
-            System.out.println("Please enter the new type: ");
+            System.out.println("Please enter the type(wall-mounted/freestanding): ");
             String newType = scanner.nextLine();
             System.out.println("Please enter whether the DisplayCase is lighted (true/false): ");
-            boolean newIsLighted = scanner.nextBoolean();
 
+            // 改进布尔值输入处理
+            Boolean newIsLighted = null;
+            while (newIsLighted == null) {
+                String input = scanner.nextLine().trim().toLowerCase();
+                if (input.equals("true") || input.equals("yes") || input.equals("y")) {
+                    newIsLighted = true;
+                } else if (input.equals("false") || input.equals("no") || input.equals("n")) {
+                    newIsLighted = false;
+                } else {
+                    System.out.println("Invalid input. Please enter true/false, yes/no, or y/n: ");
+                }
+            }
             // 更新 DisplayCase 信息
             targetCase.setType(newType);
             targetCase.setIsLighted(newIsLighted);
@@ -232,18 +256,79 @@ public class Main {
     }
 
     /**
+     * 列出所有展示柜
+     * This method lists all display cases in the jewellery store.
+     *
+     * @author Lusiyu
+     * @since version 1.0
+     */
+    private void listAllDisplayCase() {
+        System.out.println("--------- All Display Cases ---------");
+
+        Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+        boolean hasCases = false;
+
+        while (caseNode != null) {
+            if (caseNode.data instanceof DisplayCase) {
+                DisplayCase displayCase = caseNode.data;
+                System.out.println("Display Case ID: " + displayCase.getCaseId());
+                System.out.println("  Type: " + displayCase.getType());
+                System.out.println("  Lighted: " + displayCase.getIsLighted());
+
+                // 显示该展示柜中的托盘信息
+                Link.Node<Tray> trayNode = displayCase.getHead();
+                System.out.print("  Trays: ");
+                if (trayNode == null) {
+                    System.out.println("None");
+                } else {
+                    int trayCount = 0;
+                    while (trayNode != null) {
+                        if (trayNode.data != null) {
+                            trayCount++;
+                        }
+                        trayNode = trayNode.next;
+                    }
+                    System.out.println(trayCount + " tray(s)");
+                }
+
+                hasCases = true;
+                System.out.println(); // 空行分隔不同展示柜
+            }
+            caseNode = caseNode.next;
+        }
+
+        if (!hasCases) {
+            System.out.println("No display cases found.");
+        }
+        System.out.println("------------------------------------");
+    }
+
+    /**
      * 查找展示柜。
-     * This method is to search a displayCase by the keyword.
+     * This method is to search a displayCase by the caseId.
      *
      * @author LuSiyu
      * @since version 0.0
      */
     private void searchDisplayCase() {
-        System.out.println("Please enter the keyword: ");
-        String keyword = scanner.nextLine();
-        jewelleryStore.search(keyword);
-    }
+        System.out.println("Please enter the displayCase id: ");
+        String caseId = scanner.nextLine();
+        Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+        boolean found = false;
 
+        while (currentNode != null) {
+            if (currentNode.data != null && caseId.equals(currentNode.data.getCaseId())) {
+                System.out.println("Found DisplayCase: " + currentNode.data);
+                found = true;
+                break;
+            }
+            currentNode = currentNode.next;
+        }
+
+        if (!found) {
+            System.out.println("DisplayCase not found with id: " + caseId);
+        }
+    }
 
     //---------------------
     //  Tray Menu
@@ -262,13 +347,13 @@ public class Main {
             switch (option) {
                 case 1 -> addTray();
                 case 2 -> deleteTray();
-                case 3 -> jewelleryStore.viewAllStock();
+                case 3 -> listAllTray();
                 case 4 -> updateTray();
                 case 5 -> searchTray();
                 default -> System.out.println("Invalid option entered");
             }
             System.out.println("Press the enter key to continue");
-            scanner.hasNext();
+            scanner.nextLine();
             option = TrayMenu();
         }
         runMainMenu();
@@ -304,18 +389,42 @@ public class Main {
      * @since version 0.0
      */
     private void addTray() {
-        System.out.println("Please enter the Tray id: ");
-        String trayId = scanner.nextLine();
-        System.out.println("Please enter the inlayColor: ");
-        String inlayColor = scanner.nextLine();
-        System.out.println("Please enter the width of the tray: ");
-        double width = scanner.nextDouble();
-        System.out.println("Please enter the depth of the tray: ");
-        double depth = scanner.nextDouble();
-        Tray tray = new Tray(trayId, inlayColor, width, depth);
-        trays.add(tray);
-        System.out.println("Add successful");
 
+        try {
+            // 首先需要指定要添加到哪个 DisplayCase
+            System.out.println("Please enter the DisplayCase id to add tray to: ");
+            String caseId = scanner.next();
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+            while (currentNode != null) {
+                if (currentNode.data instanceof DisplayCase &&
+                        currentNode.data.getCaseId().equals(caseId)) {
+                    targetCase = currentNode.data;
+                    break;
+                }
+                currentNode = currentNode.next;
+            }
+
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
+            System.out.println("Please enter the Tray id: ");
+            String trayId = scanner.next();
+            System.out.println("Please enter the inlayColor: ");
+            String inlayColor = scanner.next();
+            System.out.println("Please enter the width of the tray: ");
+            double width = scanner.nextDouble();
+            System.out.println("Please enter the depth of the tray: ");
+            double depth = scanner.nextDouble();
+
+            Tray tray = new Tray(trayId, inlayColor, width, depth);
+            targetCase.addTray(tray);
+            System.out.println("Add successful");
+        } catch (Exception e) {
+            System.out.println("\"Error adding Tray:" + e.getMessage());
+        }
     }
 
     /**
@@ -326,20 +435,46 @@ public class Main {
      * @since version 0.0
      */
     private void deleteTray() {
-        System.out.println("Please enter the trayId: ");
-        String trayId = scanner.nextLine();
-        Tray targetTray = null;
-        for (Object obj : trays) {
-            Tray tray1 = (Tray) obj;
-            if (tray1.getId().equals(trayId)) {
-                targetTray = tray1;
-                break;
+        try {
+            System.out.println("Please enter the DisplayCase id where the tray is located:");
+            String caseId = scanner.nextLine();
+            System.out.println("Please enter the trayId to delete: ");
+            String trayId = scanner.nextLine();
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+            while (currentNode != null) {
+                if (currentNode.data instanceof DisplayCase &&
+                        currentNode.data.getCaseId().equals(caseId)) {
+                    targetCase = currentNode.data;
+                    break;
+                }
+                currentNode = currentNode.next;
             }
-        }
-        if (targetTray != null && trays.remove(targetTray)) {
-            System.out.println("Delete successful");
-        } else {
-            System.out.println("Delete not successful");
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
+
+            // 从目标 DisplayCase 中删除 Tray
+            // 假设 DisplayCase 类有 removeTray 方法
+            Tray trayToRemove = null;
+            Link.Node<Tray> trayNode = targetCase.trays.getHead(); // 假设 trays 是 Link.LinkedList<Tray> 类型
+            while (trayNode != null) {
+                if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                    trayToRemove = trayNode.data;
+                    break;
+                }
+                trayNode = trayNode.next;
+            }
+
+            if (trayToRemove != null && targetCase.trays.remove(trayToRemove)) {
+                System.out.println("Tray deleted successfully from DisplayCase");
+            } else {
+                System.out.println("Tray not found in DisplayCase with id: " + trayId);
+            }
+        } catch (Exception e) {
+            System.out.println("Error deleting Tray: " + e.getMessage());
         }
     }
 
@@ -351,22 +486,42 @@ public class Main {
      * @since version 0.0
      */
     private void updateTray() {
+        System.out.println("Please enter the DisplayCase id where the tray is located: ");
+        String caseId = scanner.next();
         System.out.println("Please enter the Tray id to update: ");
-        String trayId = scanner.nextLine();
-        // 查找要更新的 tray
-        Tray targetTray = null;
-        for (Object obj : trays) {
-            Tray tray1 = (Tray) obj;
-            if (tray1.getId().equals(trayId)) {
-                targetTray = tray1;
+        String trayId = scanner.next();
+
+        // 查找目标 DisplayCase
+        DisplayCase targetCase = null;
+        Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+        while (currentNode != null) {
+            if (currentNode.data instanceof DisplayCase &&
+                    currentNode.data.getCaseId().equals(caseId)) {
+                targetCase = currentNode.data;
                 break;
             }
+            currentNode = currentNode.next;
+        }
+
+        if (targetCase == null) {
+            System.out.println("DisplayCase not found with id: " + caseId);
+            return;
+        }
+        // 在目标 DisplayCase 中查找要更新的 Tray
+        Tray targetTray = null;
+        Link.Node<Tray> trayNode = targetCase.trays.getHead();
+        while (trayNode != null) {
+            if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                targetTray = trayNode.data;
+                break;
+            }
+            trayNode = trayNode.next;
         }
 
         if (targetTray != null) {
             // 获取新的信息
             System.out.println("Please enter the new inlayColor: ");
-            String newInlayColor = scanner.nextLine();
+            String newInlayColor = scanner.next();
             System.out.println("Please enter the new width of the tray: ");
             double newWidth = scanner.nextDouble();
             System.out.println("Please enter the new depth of the tray: ");
@@ -384,6 +539,49 @@ public class Main {
     }
 
     /**
+     * 列出所有托盘
+     * This method lists all trays in all display cases.
+     *
+     * @author LuSiyu
+     * @since version 1.0
+     */
+    private void listAllTray() {
+        System.out.println("--------- All Trays ---------");
+
+        Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+        boolean hasTrays = false;
+
+        while (caseNode != null) {
+            if (caseNode.data instanceof DisplayCase) {
+                DisplayCase displayCase = caseNode.data;
+                System.out.println("DisplayCase ID: " + displayCase.getCaseId());
+
+                Link.Node<Tray> trayNode = displayCase.trays.getHead();
+                if (trayNode == null) {
+                    System.out.println("  No trays in this display case.");
+                } else {
+                    while (trayNode != null) {
+                        if (trayNode.data != null) {
+                            System.out.println("  Tray ID: " + trayNode.data.getId() +
+                                    ", Inlay Color: " + trayNode.data.getInlayColor() +
+                                    ", Width: " + trayNode.data.getWidth() +
+                                    ", Depth: " + trayNode.data.getDepth());
+                            hasTrays = true;
+                        }
+                        trayNode = trayNode.next;
+                    }
+                }
+                System.out.println(); // 空行分隔不同展示柜
+            }
+            caseNode = caseNode.next;
+        }
+
+        if (!hasTrays) {
+            System.out.println("No trays found in any display case.");
+        }
+        System.out.println("-----------------------------");
+    }
+    /**
      * 查找托盘。
      * This method is to search a tray by the keyword.
      *
@@ -391,23 +589,41 @@ public class Main {
      * @since version 0.0
      */
     private void searchTray() {
-        System.out.println("Please enter the keyword: ");
-        String keyword = scanner.nextLine();
-
-        Tray foundTray = null;
-        for (Object obj : trays) {
-            Tray tray = (Tray) obj;
-            if (tray.getId().contains(keyword) ||
-                    tray.getInlayColor().contains(keyword)) {
-                foundTray = tray;
+        System.out.println("Please enter the DisplayCase id where the tray is located: ");
+        String caseId = scanner.next();
+        System.out.println("Please enter the tray id: ");
+        String trayId = scanner.next();
+        // 查找目标 DisplayCase
+        DisplayCase targetCase = null;
+        Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+        while (currentNode != null) {
+            if (currentNode.data instanceof DisplayCase &&
+                    currentNode.data.getCaseId().equals(caseId)) {
+                targetCase = currentNode.data;
                 break;
             }
+            currentNode = currentNode.next;
         }
 
-        if (foundTray != null) {
-            System.out.println("Found Tray: " + foundTray);
-        } else {
-            System.out.println("No matching Tray found");
+        if (targetCase == null) {
+            System.out.println("DisplayCase not found with id: " + caseId);
+            return;
+        }
+        // 在目标 DisplayCase 中查找 Tray
+        Link.Node<Tray> trayNode = targetCase.trays.getHead();
+        boolean found = false;
+
+        while (trayNode != null) {
+            if (trayNode.data != null && trayId.equals(trayNode.data.getId())) {
+                System.out.println("Found Tray: " + trayNode.data);
+                found = true;
+                break;
+            }
+            trayNode = trayNode.next;
+        }
+
+        if (!found) {
+            System.out.println("Tray not found with id: " + trayId);
         }
     }
 
@@ -429,12 +645,12 @@ public class Main {
                 case 1 -> addJewellery();
                 case 2 -> deleteJewellery();
                 case 3 -> updateJewellery();
-                case 4 -> jewelleryStore.viewAllStock();
+                case 4 -> listAllJewellery();
                 case 5 -> searchJewellery();
                 default -> System.out.println("Invalid option entered.");
             }
             System.out.println("Press the enter key to continue");
-            scanner.hasNext();
+            scanner.nextLine();
             option = jewelleryMenu();
         }
         runMainMenu();
@@ -451,7 +667,7 @@ public class Main {
      */
     private int jewelleryMenu() {
         System.out.println("""
-                 ---------DisplayCase Menu---------
+                 ---------Jewellery Menu---------
                 |  1) Add a Jewellery              |
                 |  2) Delete a Jewellery           |
                 |  3) Update Jewellery details     |
@@ -471,22 +687,24 @@ public class Main {
      */
     private void addJewellery() {
         System.out.println("Please enter the jewellery id: ");
-        String jewelleryId = scanner.nextLine();
+        String jewelleryId = scanner.next();
         System.out.println("Please enter the description: ");
-        String description = scanner.nextLine();
+        String description = scanner.next();
         System.out.println("Please enter the type: ");
-        String type = scanner.nextLine();
+        String type = scanner.next();
         System.out.println("Please enter the gender: ");
-        String gender = scanner.nextLine();
+        String gender = scanner.next();
         System.out.println("Please enter the image URL: ");
-        String imageURL = scanner.nextLine();
+        String imageURL = scanner.next();
         System.out.println("Please enter the price: ");
         double price = scanner.nextDouble();
         System.out.println("Please enter the material name: ");
-        String materialName = scanner.nextLine();
+        String materialName = scanner.next();
         Material material = new Material(materialName, null, 0, 0);
-        jewelleryStore.smartAdd(new Jewellery(jewelleryId, description, type, gender, imageURL, price, material));
-        System.out.println("Add successful");
+
+        if (jewelleryStore.smartAdd(new Jewellery(jewelleryId, description, type, gender, imageURL, price, material))){
+            System.out.println("Add successful");
+        }
 
     }
 
@@ -499,7 +717,7 @@ public class Main {
      */
     private void deleteJewellery() {
         System.out.println("Please enter the jewellery id: ");
-        String jewelleryId = scanner.nextLine();
+        String jewelleryId = scanner.next();
         if (jewelleryStore.removeItem(jewelleryId)) {
             System.out.println("Delete successful");
         } else {
@@ -515,32 +733,67 @@ public class Main {
      * @since version 0.0
      */
     private void updateJewellery() {
+        System.out.println("Please enter the DisplayCase id where the jewellery is located: ");
+        String caseId = scanner.next();
+        System.out.println("Please enter the Tray id where the jewellery is located: ");
+        String trayId = scanner.next();
         System.out.println("Please enter the Jewellery id to update: ");
-        String jewelleryId = scanner.nextLine();
-        // 查找要更新的 DisplayCase
-        Jewellery targetJewellery = null;
-        for (Object obj : jewellery) {
-            Jewellery jewellery = (Jewellery) obj;
-            if (jewellery.getId().equals(jewelleryId)) {
-                targetJewellery = jewellery;
+        String jewelleryId = scanner.next();
+        // 查找目标 DisplayCase
+        DisplayCase targetCase = null;
+        Link.Node<DisplayCase> currentNode = jewelleryStore.displayCases.getHead();
+        while (currentNode != null) {
+            if (currentNode.data instanceof DisplayCase &&
+                    currentNode.data.getCaseId().equals(caseId)) {
+                targetCase = currentNode.data;
                 break;
             }
+            currentNode = currentNode.next;
         }
 
+        if (targetCase == null) {
+            System.out.println("DisplayCase not found with id: " + caseId);
+            return;
+        }
+        // 在目标 DisplayCase 中查找 Tray
+        Tray targetTray = null;
+        Link.Node<Tray> trayNode = targetCase.trays.getHead();
+        while (trayNode != null) {
+            if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                targetTray = trayNode.data;
+                break;
+            }
+            trayNode = trayNode.next;
+        }
+
+        if (targetTray == null) {
+            System.out.println("Tray not found with id: " + trayId);
+            return;
+        }
+        // 在目标 Tray 中查找 Jewellery
+        Jewellery targetJewellery = null;
+        Link.Node<Jewellery> jewelleryNode = targetTray.getJewelleryList().getHead();
+        while (jewelleryNode != null) {
+            if (jewelleryNode.data != null && jewelleryNode.data.getId().equals(jewelleryId)) {
+                targetJewellery = jewelleryNode.data;
+                break;
+            }
+            jewelleryNode = jewelleryNode.next;
+        }
         if (targetJewellery != null) {
             // 获取新的信息
             System.out.println("Please enter the new description: ");
-            String newDescription = scanner.nextLine();
+            String newDescription = scanner.next();
             System.out.println("Please enter the new type: ");
-            String newType = scanner.nextLine();
+            String newType = scanner.next();
             System.out.println("Please enter the new gender: ");
-            String newGender = scanner.nextLine();
+            String newGender = scanner.next();
             System.out.println("Please enter the new image URL: ");
-            String newImageURL = scanner.nextLine();
+            String newImageURL = scanner.next();
             System.out.println("Please enter the new price: ");
             double newPrice = scanner.nextDouble();
             System.out.println("Please enter the new material name: ");
-            String newMaterialName = scanner.nextLine();
+            String newMaterialName = scanner.next();
 
             targetJewellery.setDescription(newDescription);
             targetJewellery.setType(newType);
@@ -552,6 +805,83 @@ public class Main {
             System.out.println("Jewellery not found");
         }
     }
+    /**
+     * 列出所有珠宝
+     * This method lists all jewellery in the jewellery store.
+     *
+     * @author LuSiyu
+     * @since version 1.0
+     */
+    private void listAllJewellery() {
+        System.out.println("--------- All Jewellery ---------");
+
+        Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+        boolean hasJewellery = false;
+        int totalJewellery = 0;
+
+        while (caseNode != null) {
+            if (caseNode.data instanceof DisplayCase) {
+                DisplayCase displayCase = caseNode.data;
+
+                Link.Node<Tray> trayNode = displayCase.getHead();
+                while (trayNode != null) {
+                    if (trayNode.data != null) {
+                        Tray tray = trayNode.data;
+                        System.out.println("Display Case: " + displayCase.getCaseId() +
+                                " -> Tray: " + tray.getId());
+
+                        Link.Node<Jewellery> jewelleryNode = tray.getJewelleryList().getHead();
+                        if (jewelleryNode == null) {
+                            System.out.println("  No jewellery in this tray.");
+                        } else {
+                            while (jewelleryNode != null) {
+                                if (jewelleryNode.data != null) {
+                                    Jewellery jewellery = jewelleryNode.data;
+                                    System.out.println("  Jewellery ID: " + jewellery.getId());
+                                    System.out.println("    Description: " + jewellery.getDescription());
+                                    System.out.println("    Type: " + jewellery.getType());
+                                    System.out.println("    Gender: " + jewellery.getGender());
+                                    System.out.println("    Price: $" + jewellery.getPrice());
+                                    System.out.println("    Image URL: " + jewellery.getImageURL());
+
+                                    // 显示材料信息
+                                    Link.Node<Material> materialNode = jewellery.getMaterials().getHead();
+                                    if (materialNode != null) {
+                                        System.out.print("    Materials: ");
+                                        while (materialNode != null) {
+                                            if (materialNode.data != null) {
+                                                System.out.print(materialNode.data.getName());
+                                                if (materialNode.next != null && materialNode.next.data != null) {
+                                                    System.out.print(", ");
+                                                }
+                                            }
+                                            materialNode = materialNode.next;
+                                        }
+                                        System.out.println();
+                                    }
+
+                                    totalJewellery++;
+                                    hasJewellery = true;
+                                    System.out.println(); // 空行分隔不同珠宝
+                                }
+                                jewelleryNode = jewelleryNode.next;
+                            }
+                        }
+                        System.out.println(); // 空行分隔不同托盘
+                    }
+                    trayNode = trayNode.next;
+                }
+            }
+            caseNode = caseNode.next;
+        }
+
+        if (!hasJewellery) {
+            System.out.println("No jewellery found in the store.");
+        } else {
+            System.out.println("Total jewellery items: " + totalJewellery);
+        }
+        System.out.println("--------------------------------");
+    }
 
     /**
      * 通过关键词获取珠宝。
@@ -562,7 +892,7 @@ public class Main {
      */
     private void searchJewellery() {
         System.out.println("Please enter the keyword: ");
-        String keyword = scanner.nextLine();
+        String keyword = scanner.next();
         jewelleryStore.search(keyword);
     }
 
@@ -585,12 +915,12 @@ public class Main {
                 case 1 -> addMaterial();
                 case 2 -> deleteMaterial();
                 case 3 -> updateMaterial();
-                case 4 -> jewelleryStore.viewAllStock();
+                case 4 -> listAllMaterial();
                 case 5 -> searchMaterial();
                 default -> System.out.println("Invalid option entered.");
             }
             System.out.println("Press the enter key to continue");
-            scanner.hasNext();
+            scanner.nextLine();
             option = materialsMenu();
         }
         runMainMenu();
@@ -626,17 +956,81 @@ public class Main {
      * @since version 0.0
      */
     private void addMaterial() {
-        System.out.println("Please enter the material name: ");
-        String name = scanner.nextLine();
-        System.out.println("Please enter the description: ");
-        String description = scanner.nextLine();
-        System.out.println("Please enter the quantity: ");
-        Double quantity = scanner.nextDouble();
-        System.out.println("Please enter the quality: ");
-        Double quality = scanner.nextDouble();
-        Material material = new Material(name, description, quantity, quality);
-        materials.add(material);
-        System.out.println("Add successful");
+        try {
+            // 首先需要找到要添加材料的珠宝
+            System.out.println("Please enter the DisplayCase id where the jewellery is located: ");
+            String caseId = scanner.next();
+            System.out.println("Please enter the Tray id where the jewellery is located: ");
+            String trayId = scanner.next();
+            System.out.println("Please enter the Jewellery id to add material to: ");
+            String jewelleryId = scanner.next();
+
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+            while (caseNode != null) {
+                if (caseNode.data instanceof DisplayCase &&
+                        caseNode.data.getCaseId().equals(caseId)) {
+                    targetCase = caseNode.data;
+                    break;
+                }
+                caseNode = caseNode.next;
+            }
+
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
+
+            // 查找目标 Tray
+            Tray targetTray = null;
+            Link.Node<Tray> trayNode = targetCase.getHead();
+            while (trayNode != null) {
+                if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                    targetTray = trayNode.data;
+                    break;
+                }
+                trayNode = trayNode.next;
+            }
+
+            if (targetTray == null) {
+                System.out.println("Tray not found with id: " + trayId);
+                return;
+            }
+
+            // 查找目标 Jewellery
+            Jewellery targetJewellery = null;
+            Link.Node<Jewellery> jewelleryNode = targetTray.getJewelleryList().getHead();
+            while (jewelleryNode != null) {
+                if (jewelleryNode.data != null && jewelleryNode.data.getId().equals(jewelleryId)) {
+                    targetJewellery = jewelleryNode.data;
+                    break;
+                }
+                jewelleryNode = jewelleryNode.next;
+            }
+
+            if (targetJewellery == null) {
+                System.out.println("Jewellery not found with id: " + jewelleryId);
+                return;
+            }
+
+            // 输入 Material 信息
+            System.out.println("Please enter the material name: ");
+            String name = scanner.next();
+            System.out.println("Please enter the description: ");
+            String description = scanner.next();
+            System.out.println("Please enter the quantity: ");
+            Double quantity = scanner.nextDouble();
+            System.out.println("Please enter the quality: ");
+            Double quality = scanner.nextDouble();
+            scanner.nextLine(); // 清除缓冲区
+
+            Material material = new Material(name, description, quantity, quality);
+            targetJewellery.addMaterial(material); // 假设 Jewellery 类有 addMaterial 方法
+            System.out.println("Material added to Jewellery successfully");
+        } catch (Exception e) {
+            System.out.println("Error adding Material: " + e.getMessage());
+        }
 
     }
 
@@ -648,14 +1042,97 @@ public class Main {
      * @since version 0.0
      */
     private void deleteMaterial() {
-        System.out.println("Please enter the Material name: ");
-        String materialName = scanner.nextLine();
-        if (materials.remove(materialName)) {
-            System.out.println("Delete successful");
-        } else {
-            System.out.println("Delete not successful");
+        try {
+            // 需要先找到目标珠宝
+            System.out.println("Please enter the DisplayCase id where the jewellery is located: ");
+            String caseId = scanner.next();
+            System.out.println("Please enter the Tray id where the jewellery is located: ");
+            String trayId = scanner.next();
+            System.out.println("Please enter the Jewellery id to delete material from: ");
+            String jewelleryId = scanner.next();
+            System.out.println("Please enter the Material name to delete: ");
+            String materialName = scanner.next();
+
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+            while (caseNode != null) {
+                if (caseNode.data instanceof DisplayCase &&
+                        caseNode.data.getCaseId().equals(caseId)) {
+                    targetCase = caseNode.data;
+                    break;
+                }
+                caseNode = caseNode.next;
+            }
+
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
+
+            // 查找目标 Tray
+            Tray targetTray = null;
+            Link.Node<Tray> trayNode = targetCase.getHead();
+            while (trayNode != null) {
+                if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                    targetTray = trayNode.data;
+                    break;
+                }
+                trayNode = trayNode.next;
+            }
+
+            if (targetTray == null) {
+                System.out.println("Tray not found with id: " + trayId);
+                return;
+            }
+
+            // 查找目标 Jewellery
+            Jewellery targetJewellery = null;
+            Link.Node<Jewellery> jewelleryNode = targetTray.getJewelleryList().getHead();
+            while (jewelleryNode != null) {
+                if (jewelleryNode.data != null && jewelleryNode.data.getId().equals(jewelleryId)) {
+                    targetJewellery = jewelleryNode.data;
+                    break;
+                }
+                jewelleryNode = jewelleryNode.next;
+            }
+
+            if (targetJewellery == null) {
+                System.out.println("Jewellery not found with id: " + jewelleryId);
+                return;
+            }
+
+            // 查找并删除目标 Material
+            Link.Node<Material> materialNode = targetJewellery.getMaterials().getHead(); // 假设 Jewellery 有 getMaterials 方法
+            Link.Node<Material> prevNode = null;
+            boolean found = false;
+
+            while (materialNode != null) {
+                if (materialNode.data != null && materialNode.data.getName().equals(materialName)) {
+                    // 执行删除操作
+                    if (prevNode == null) {
+                        // 删除头节点
+                        targetJewellery.getMaterials().setHead(materialNode.next.getData());
+                    } else {
+                        // 删除中间或尾节点
+                        prevNode.next = materialNode.next;
+                    }
+                    found = true;
+                    System.out.println("Material deleted successfully from Jewellery");
+                    break;
+                }
+                prevNode = materialNode;
+                materialNode = materialNode.next;
+            }
+
+            if (!found) {
+                System.out.println("Material not found with name: " + materialName);
+            }
+        } catch (Exception e) {
+            System.out.println("Error deleting Material: " + e.getMessage());
         }
     }
+
 
     /**
      * 更新材料。
@@ -665,36 +1142,169 @@ public class Main {
      * @since version 0.0
      */
     private void updateMaterial() {
-        System.out.println("Please enter the Material name to update: ");
-        String materialName = scanner.nextLine();
-        // 查找要更新的 material
-        Material targetMaterial = null;
-        for (Object obj : materials) {
-            Material material = (Material) obj;
-            if (material.getName().equals(materialName)) {
-                targetMaterial = material;
-                break;
+        try {
+            // 需要先找到目标珠宝
+            System.out.println("Please enter the DisplayCase id where the jewellery is located: ");
+            String caseId = scanner.next();
+            System.out.println("Please enter the Tray id where the jewellery is located: ");
+            String trayId = scanner.next();
+            System.out.println("Please enter the Jewellery id where the material is located: ");
+            String jewelleryId = scanner.next();
+            System.out.println("Please enter the Material name to update: ");
+            String materialName = scanner.next();
+
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+            while (caseNode != null) {
+                if (caseNode.data instanceof DisplayCase &&
+                        caseNode.data.getCaseId().equals(caseId)) {
+                    targetCase = caseNode.data;
+                    break;
+                }
+                caseNode = caseNode.next;
             }
-        }
 
-        if (targetMaterial != null) {
-            // 获取新的信息
-            System.out.println("Please enter the new description: ");
-            String newDescription = scanner.nextLine();
-            System.out.println("Please enter the new quantity: ");
-            Double newQuantity = scanner.nextDouble();
-            System.out.println("Please enter the new quality: ");
-            Double newQuality = scanner.nextDouble();
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
 
-            targetMaterial.setDescription(newDescription);
-            targetMaterial.setQuantity(newQuantity);
-            targetMaterial.setQuality(newQuality);
-            System.out.println("Material updated successfully");
-        } else {
-            System.out.println("Material not found");
+            // 查找目标 Tray
+            Tray targetTray = null;
+            Link.Node<Tray> trayNode = targetCase.getHead();
+            while (trayNode != null) {
+                if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                    targetTray = trayNode.data;
+                    break;
+                }
+                trayNode = trayNode.next;
+            }
+
+            if (targetTray == null) {
+                System.out.println("Tray not found with id: " + trayId);
+                return;
+            }
+
+            // 查找目标 Jewellery
+            Jewellery targetJewellery = null;
+            Link.Node<Jewellery> jewelleryNode = targetTray.getJewelleryList().getHead();
+            while (jewelleryNode != null) {
+                if (jewelleryNode.data != null && jewelleryNode.data.getId().equals(jewelleryId)) {
+                    targetJewellery = jewelleryNode.data;
+                    break;
+                }
+                jewelleryNode = jewelleryNode.next;
+            }
+
+            if (targetJewellery == null) {
+                System.out.println("Jewellery not found with id: " + jewelleryId);
+                return;
+            }
+
+            // 查找目标 Material
+            Material targetMaterial = null;
+            Link.Node<Material> materialNode = targetJewellery.getMaterials().getHead();
+            while (materialNode != null) {
+                if (materialNode.data != null && materialNode.data.getName().equals(materialName)) {
+                    targetMaterial = materialNode.data;
+                    break;
+                }
+                materialNode = materialNode.next;
+            }
+
+            if (targetMaterial != null) {
+                // 获取新的信息
+                System.out.println("Please enter the new description: ");
+                String newDescription = scanner.next();
+                System.out.println("Please enter the new quantity: ");
+                Double newQuantity = scanner.nextDouble();
+                System.out.println("Please enter the new quality: ");
+                Double newQuality = scanner.nextDouble();
+                scanner.nextLine(); // 清除缓冲区
+
+                // 更新 Material 信息
+                targetMaterial.setDescription(newDescription);
+                targetMaterial.setQuantity(newQuantity);
+                targetMaterial.setQuality(newQuality);
+
+                System.out.println("Material updated successfully");
+            } else {
+                System.out.println("Material not found with name: " + materialName);
+            }
+        } catch (Exception e) {
+            System.out.println("Error updating Material: " + e.getMessage());
         }
     }
 
+    /**
+     * 列出所有材料
+     * This method lists all materials in the jewellery store.
+     *
+     * @author Lusiyu
+     * @since version 1.0
+     */
+    private void listAllMaterial() {
+        System.out.println("--------- All Materials ---------");
+
+        Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+        boolean hasMaterials = false;
+        int totalMaterials = 0;
+
+        while (caseNode != null) {
+            if (caseNode.data instanceof DisplayCase) {
+                DisplayCase displayCase = caseNode.data;
+
+                Link.Node<Tray> trayNode = displayCase.getHead();
+                while (trayNode != null) {
+                    if (trayNode.data != null) {
+                        Tray tray = trayNode.data;
+
+                        Link.Node<Jewellery> jewelleryNode = tray.getJewelleryList().getHead();
+                        while (jewelleryNode != null) {
+                            if (jewelleryNode.data != null) {
+                                Jewellery jewellery = jewelleryNode.data;
+                                System.out.println("Display Case: " + displayCase.getCaseId() +
+                                        " -> Tray: " + tray.getId() +
+                                        " -> Jewellery: " + jewellery.getId());
+
+                                Link.Node<Material> materialNode = jewellery.getMaterials().getHead();
+                                if (materialNode == null) {
+                                    System.out.println("  No materials for this jewellery.");
+                                } else {
+                                    while (materialNode != null) {
+                                        if (materialNode.data != null) {
+                                            Material material = materialNode.data;
+                                            System.out.println("  Material Name: " + material.getName());
+                                            System.out.println("    Description: " + material.getDescription());
+                                            System.out.println("    Quantity: " + material.getQuantity());
+                                            System.out.println("    Quality: " + material.getQuality());
+
+                                            totalMaterials++;
+                                            hasMaterials = true;
+                                            System.out.println(); // 空行分隔不同材料
+                                        }
+                                        materialNode = materialNode.next;
+                                    }
+                                }
+                                System.out.println(); // 空行分隔不同珠宝
+                            }
+                            jewelleryNode = jewelleryNode.next;
+                        }
+                    }
+                    trayNode = trayNode.next;
+                }
+            }
+            caseNode = caseNode.next;
+        }
+
+        if (!hasMaterials) {
+            System.out.println("No materials found in the store.");
+        } else {
+            System.out.println("Total materials: " + totalMaterials);
+        }
+        System.out.println("--------------------------------");
+    }
     /**
      * 通过关键词查找材料。
      * This method retrieves a material by the keyword.
@@ -703,25 +1313,86 @@ public class Main {
      * @since version 0.0
      */
     private void searchMaterial() {
-        System.out.println("Please enter the keyword: ");
-        String keyword = scanner.nextLine();
+        try {
+            // 需要先找到目标珠宝
+            System.out.println("Please enter the DisplayCase id where the jewellery is located: ");
+            String caseId = scanner.next();
+            System.out.println("Please enter the Tray id where the jewellery is located: ");
+            String trayId = scanner.next();
+            System.out.println("Please enter the Jewellery id where the material is located: ");
+            String jewelleryId = scanner.next();
+            System.out.println("Please enter the material name or keyword to search: ");
+            String keyword = scanner.next();
 
-        // 使用遍历方式查找材料，避免类型问题
-        Material foundMaterial = null;
-        for (Object obj : materials) {
-            Material material = (Material) obj;
-            // 搜索条件：材料名称或描述包含关键字
-            if (material.getName().contains(keyword) ||
-                    material.getDescription().contains(keyword)) {
-                foundMaterial = material;
-                break;
+            // 查找目标 DisplayCase
+            DisplayCase targetCase = null;
+            Link.Node<DisplayCase> caseNode = jewelleryStore.displayCases.getHead();
+            while (caseNode != null) {
+                if (caseNode.data instanceof DisplayCase &&
+                        caseNode.data.getCaseId().equals(caseId)) {
+                    targetCase = caseNode.data;
+                    break;
+                }
+                caseNode = caseNode.next;
             }
-        }
 
-        if (foundMaterial != null) {
-            System.out.println("Found Material: " + foundMaterial);
-        } else {
-            System.out.println("No matching Material found");
+            if (targetCase == null) {
+                System.out.println("DisplayCase not found with id: " + caseId);
+                return;
+            }
+
+            // 查找目标 Tray
+            Tray targetTray = null;
+            Link.Node<Tray> trayNode = targetCase.getHead();
+            while (trayNode != null) {
+                if (trayNode.data != null && trayNode.data.getId().equals(trayId)) {
+                    targetTray = trayNode.data;
+                    break;
+                }
+                trayNode = trayNode.next;
+            }
+
+            if (targetTray == null) {
+                System.out.println("Tray not found with id: " + trayId);
+                return;
+            }
+
+            // 查找目标 Jewellery
+            Jewellery targetJewellery = null;
+            Link.Node<Jewellery> jewelleryNode = targetTray.getJewelleryList().getHead();
+            while (jewelleryNode != null) {
+                if (jewelleryNode.data != null && jewelleryNode.data.getId().equals(jewelleryId)) {
+                    targetJewellery = jewelleryNode.data;
+                    break;
+                }
+                jewelleryNode = jewelleryNode.next;
+            }
+
+            if (targetJewellery == null) {
+                System.out.println("Jewellery not found with id: " + jewelleryId);
+                return;
+            }
+
+            // 在目标 Jewellery 中查找 Material
+            Link.Node<Material> materialNode = targetJewellery.getMaterials().getHead();
+            boolean found = false;
+
+            while (materialNode != null) {
+                if (materialNode.data != null &&
+                        (materialNode.data.getName().contains(keyword) ||
+                                materialNode.data.getDescription().contains(keyword))) {
+                    System.out.println("Found Material: " + materialNode.data);
+                    found = true;
+                    break;
+                }
+                materialNode = materialNode.next;
+            }
+
+            if (!found) {
+                System.out.println("No matching Material found with keyword: " + keyword);
+            }
+        } catch (Exception e) {
+            System.out.println("Error searching Material: " + e.getMessage());
         }
     }
 }
