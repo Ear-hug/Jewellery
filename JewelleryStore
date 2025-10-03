@@ -6,93 +6,215 @@ import Objects.Material;
 import Objects.Tray;
 
 import java.util.Scanner;
-public class JewelleryStore extends Node {
+public class JewelleryStore {
 
     LinkedList<Object> displayCases = null;
     // Remove a case.
     public void removeCase(String caseId) {
-        // TODO: 遍历 cases 链表，找到并删除
-        Scanner sc = new Scanner(System.in);
-        String newdisplayCaseId = sc.toString();
-
-        LinkedList<Object> displayCases = null;
-        Node<DisplayCase> caseNode = displayCases.getHead();
-        while (caseNode != null) {
-            if (newdisplayCaseId.equals(caseNode.data.caseId)) {
-            }
-            displayCases.remove(caseNode.data);
-            System.out.println("Removed successfully.");
+        if (displayCases == null || displayCases.getHead() == null) {
+            System.out.println("No cases to remove.");
             return;
         }
-        caseNode = caseNode.next;
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        Node<DisplayCase> prevNode = null;
+
+        while (caseNode != null) {
+            if (caseNode.data != null && caseId.equals(caseNode.data.getCaseId())) {
+                if (prevNode == null) {
+                    // 删除头节点
+                    displayCases.setHead(caseNode.next);
+                } else {
+                    // 删除中间或尾节点
+                    prevNode.next = caseNode.next;
+                }
+                System.out.println("Removed successfully.");
+                return;
+            }
+            prevNode = caseNode;
+            caseNode = caseNode.next;
+        }
+        System.out.println("Case not found.");
     }
-
     // View all stock.
-    public String viewAllStock() {
-        // TODO: 遍历所有 case → tray → item → materials
-        System.out.println("=== 全部库存 ===");
-
-        Node<Object> displayCases = null;
+    public void viewAllStock() {
+        if (displayCases == null || displayCases.getHead() == null) {
+            System.out.println("No items in stock.");
+            return;
+        }
+        System.out.println("========= ALL STOCK =========");
+        // 遍历所有展示柜
         Node<DisplayCase> caseNode = displayCases.getHead();
         while (caseNode != null) {
-            Node<Tray> trayNode = caseNode.data.trays.getHead();
-            while (trayNode != null) {
-                Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
-                while (jewelleryNode != null) {
-                    Node<Material> materialNode = jewelleryNode.data.getMaterials().getHead();
-                    while (materialNode != null) {
-                        System.out.println(materialNode.data);
-                        materialNode = materialNode.next;
-                    }
-                    jewelleryNode = jewelleryNode.next;
-                }
-                trayNode = trayNode.next;
+            if (caseNode.data instanceof DisplayCase) {
+                DisplayCase displayCase = caseNode.data;
+                System.out.println("=== Display Case: " + displayCase.getCaseId() +
+                        " (Type: " + displayCase.getType() +
+                        ", Lighted: " + displayCase.getIsLighted() + ") ===");
 
+                // 遍历展示柜中的托盘
+                Node<Tray> trayNode = displayCase.trays.getHead();
+                if (trayNode == null) {
+                    System.out.println("  No trays in this display case.");
+                } else {
+                    while (trayNode != null) {
+                        if (trayNode.data != null) {
+                            Tray tray = trayNode.data;
+                            System.out.println("  --- Tray: " + tray.getId() +
+                                    " (Color: " + tray.getInlayColor() +
+                                    ", Size: " + tray.getWidth() + "x" + tray.getDepth() + ") ---");
+
+                            // 遍历托盘中的珠宝
+                            Node<Jewellery> jewelleryNode = tray.getJewelleryList().getHead();
+                            if (jewelleryNode == null) {
+                                System.out.println("    No jewellery in this tray.");
+                            } else {
+                                while (jewelleryNode != null) {
+                                    if (jewelleryNode.data != null) {
+                                        Jewellery jewellery = jewelleryNode.data;
+                                        System.out.println("    *** Jewellery: " + jewellery.getId() +
+                                                " (Type: " + jewellery.getType() +
+                                                ", Gender: " + jewellery.getGender() +
+                                                ", Price: $" + jewellery.getPrice() + ") ***");
+                                        System.out.println("        Description: " + jewellery.getDescription());
+                                        System.out.println("        Image URL: " + jewellery.getImageURL());
+
+                                        // 遍历珠宝中的材料
+                                        Node<Material> materialNode = jewellery.getMaterials().getHead();
+                                        if (materialNode == null) {
+                                            System.out.println("        No materials for this jewellery.");
+                                        } else {
+                                            System.out.println("        Materials:");
+                                            while (materialNode != null) {
+                                                if (materialNode.data != null) {
+                                                    Material material = materialNode.data;
+                                                    System.out.println("          - " + material.getName() +
+                                                            " (Quantity: " + material.getQuantity() +
+                                                            ", Quality: " + material.getQuality() + ")");
+                                                    System.out.println("            Description: " + material.getDescription());
+                                                }
+                                                materialNode = materialNode.next;
+                                            }
+                                        }
+                                    }
+                                    jewelleryNode = jewelleryNode.next;
+                                    if (jewelleryNode != null && jewelleryNode.data != null) {
+                                        System.out.println(); // 珠宝之间的空行
+                                    }
+                                }
+                            }
+                        }
+                        trayNode = trayNode.next;
+                        if (trayNode != null && trayNode.data != null) {
+                            System.out.println(); // 托盘之间的空行
+                        }
+                    }
+                }
             }
             caseNode = caseNode.next;
-            System.out.println("=== " + caseNode.data.caseId + " ===");
+            if (caseNode != null && caseNode.data != null) {
+                System.out.println("\n" + "=".repeat(50) + "\n"); // 展示柜之间的分隔线
+            }
         }
-        return "=== 显示完毕 ===";
+        System.out.println("=============================");
     }
 
     // Search.
     public void search(String keyword) {
-        // TODO: 遍历并匹配 description / name
-        Node<Jewellery> jewellyNode = null;
-        Node<Jewellery> caseNode = jewellyNode.getHead();
-        while (caseNode != null) {
-            if (keyword.equals(caseNode.data.getDescription()) || keyword.equals(caseNode.data.getId())) {
-                System.out.println(caseNode.data);
-            } else {
-                System.out.println("Not found.");
+        if (displayCases == null || displayCases.getHead() == null) {
+            System.out.println("No items to search.");
+            return;
+        }
+        boolean found = false;
+        // 遍历所有 case → tray → item
+        Node<DisplayCase> caseNode = displayCases.getHead();
+        if (caseNode.data != null) {
+            // 遍历展示柜中的托盘
+            Node<Tray> trayNode = caseNode.data.getHead();
+            while (trayNode != null) {
+                if (trayNode.data != null) {
+                    // 遍历托盘中的珠宝
+                    Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
+                    while (jewelleryNode != null) {
+                        if (jewelleryNode.data != null) {
+                            // 检查珠宝的描述或ID是否匹配关键词
+                            if (keyword.equals(jewelleryNode.data.getDescription()) ||
+                                    keyword.equals(jewelleryNode.data.getId())) {
+                                System.out.println("Found: " + jewelleryNode.data);
+                                found = true;
+                            }
+                        }
+                        jewelleryNode = jewelleryNode.next;
+                    }
+                }
+                trayNode = trayNode.next;
             }
+        }
             caseNode = caseNode.next;
-            System.out.println("=== " + caseNode.data.getId() + " ===");
+        if (!found) {
+            System.out.println("Not found.");
         }
     }
 
-    // Smart add.
-    public void smartAdd(Jewellery item) {
-        // TODO: 自动选择 case/tray 存放
-        LinkedList<Jewellery> jewellery = null;
-        Node<DisplayCase> caseNode = jewellery.getHead();
-        Node<Tray> currentTray = null;
-        while (caseNode != null) {
-            Node<Tray> trayNode = caseNode.data.trays.getHead();
-            while (trayNode != null) {
-                Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
-                while (jewelleryNode != null) {
-                    if (jewelleryNode.data.getType().equals(item.getType())) {
-                        trayNode.data.getJewelleryList().add(item);
-                    } else {
-                        currentTray = trayNode;
-                        trayNode = trayNode.next;
-                        trayNode.data.getJewelleryList().add(item);
-                    }
-                }
-            }
+    /**
+     * 智能添加珠宝到合适的展示柜和托盘中
+     * Smartly adds a jewellery to an appropriate display case and tray.
+     *
+     * @param item 要添加的珠宝
+     * @author LuSiyu
+     * @since version 1.0
+     */
+    public boolean smartAdd(Jewellery item) {
+        // 自动选择存放珠宝的展示柜和托盘。
+        if (displayCases == null || displayCases.getHead() == null) {
+            System.out.println("No display cases available.");
+            return false;
         }
 
+        Node<DisplayCase> caseNode = displayCases.getHead();
+
+        // 遍历所有展示柜和托盘，寻找匹配类型的位置
+        while (caseNode != null && caseNode.data != null) {
+            Node<Tray> trayNode = caseNode.data.getHead();
+
+            while (trayNode != null && trayNode.data != null) {
+                // 检查托盘中是否已有相同类型的珠宝
+                Node<Jewellery> jewelleryNode = trayNode.data.getJewelleryList().getHead();
+                boolean foundSameType = false;
+
+                while (jewelleryNode != null && jewelleryNode.data != null) {
+                    if (jewelleryNode.data.getType().equals(item.getType())) {
+                        foundSameType = true;
+                        break;
+                    }
+                    jewelleryNode = jewelleryNode.next;
+                }
+
+                // 如果找到相同类型的珠宝，就将新珠宝添加到同一托盘
+                if (foundSameType) {
+                    trayNode.data.getJewelleryList().add(item);
+                    System.out.println("Jewellery added to existing tray with same type.");
+                    return true;
+                }
+
+                trayNode = trayNode.next;
+            }
+            caseNode = caseNode.next;
+        }
+
+        // 如果没有找到相同类型的珠宝，添加到第一个可用的托盘
+        caseNode = displayCases.getHead();
+        while (caseNode != null && caseNode.data != null) {
+            Node<Tray> trayNode = caseNode.data.getHead();
+            while (trayNode != null && trayNode.data != null) {
+                trayNode.data.getJewelleryList().add(item);
+                System.out.println("Jewellery added to first available tray.");
+                return true;
+            }
+            caseNode = caseNode.next;
+        }
+
+        System.out.println("No trays available in any display case.");
+        return false;
     }
 
     // Remove item.
@@ -336,4 +458,8 @@ public class JewelleryStore extends Node {
         }
     }
      **/
+
+    public JewelleryStore() {
+        this.displayCases = new LinkedList<>();
+    }
 }
