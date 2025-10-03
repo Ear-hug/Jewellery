@@ -119,4 +119,8 @@ public class LinkedList<T> {
         System.out.println("All elements removed.");
        // System.gc();
     }
+
+    public void setHead(T next) {
+        head.setData(next);
+    }
 }
